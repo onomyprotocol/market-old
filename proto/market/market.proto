@@ -1,0 +1,72 @@
+syntax = "proto3";
+
+package onomyprotocol.onomy.market;
+
+import "cosmos/base/v1beta1/coin.proto";
+
+option go_package = "github.com/onomyprotocol/market/x/market/types";
+
+message Market {
+  repeated OrderQueue order_queues = 1;
+  repeated Drop       drops = 2;
+  repeated Book       books = 3;
+  repeated Bond       bonds = 4;
+}
+
+message OrderQueue {
+  Pair           pair = 1;
+  repeated Order orders = 2;
+}
+
+message Drop {
+  Pair   pair = 1;
+  uint64 value = 2;
+}
+
+message Book {
+  PairPlusCoin      pair_plus_coin = 1;
+  repeated Position positions = 2;
+}
+
+message Bond {
+  PairPlusCoin pair_plus_coin = 1;
+  uint64       value = 2;
+}
+
+message Order {
+  oneof order {
+    LimitOrder  limit_order = 1;
+    MarketOrder market_order = 2;
+  }
+}
+
+message LimitOrder {
+  uint64                       account = 1;
+  cosmos.base.v1beta1.DecCoin  amount = 2;
+  cosmos.base.v1beta1.Coin     bid = 3;
+  cosmos.base.v1beta1.Coin     ask = 4;
+  cosmos.base.v1beta1.DecProto exchange_rate = 5;
+}
+
+message MarketOrder {
+  uint64                       account = 1;
+  cosmos.base.v1beta1.DecCoin  amount = 2;
+  cosmos.base.v1beta1.Coin     bid = 3;
+  cosmos.base.v1beta1.Coin     ask = 4;
+  cosmos.base.v1beta1.DecProto exchange_rate = 5;
+}
+
+message Position {
+  cosmos.base.v1beta1.DecCoin  amount = 1;
+  cosmos.base.v1beta1.DecProto exchange_rate = 2;
+}
+
+message PairPlusCoin {
+  Pair                     pair = 1;
+  cosmos.base.v1beta1.Coin coin = 2;
+}
+
+message Pair {
+  cosmos.base.v1beta1.Coin a = 1;
+  cosmos.base.v1beta1.Coin b = 2;
+}

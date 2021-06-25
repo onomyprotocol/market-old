@@ -5,8 +5,8 @@ package onomyprotocol.market.market;
 
 option go_package = "github.com/onomyprotocol/market/x/market/types";
 
-// GenesisState defines the capability module's genesis state.
+// GenesisState defines the market module's genesis state.
 message GenesisState {
     // this line is used by starport scaffolding # genesis/proto/state
+    string port_id = 1; // this line is used by starport scaffolding # genesis/proto/stateField
 }
-
