@@ -7,22 +7,36 @@ import (
 
 	"github.com/cosmos/cosmos-sdk/codec"
 	sdk "github.com/cosmos/cosmos-sdk/types"
+	capabilitykeeper "github.com/cosmos/cosmos-sdk/x/capability/keeper"
 	"github.com/onomyprotocol/market/x/market/types"
 )
 
 type (
 	Keeper struct {
-		cdc      codec.Marshaler
-		storeKey sdk.StoreKey
-		memKey   sdk.StoreKey
+		cdc           codec.Marshaler
+		storeKey      sdk.StoreKey
+		memKey        sdk.StoreKey
+		channelKeeper types.ChannelKeeper
+		portKeeper    types.PortKeeper
+		scopedKeeper  capabilitykeeper.ScopedKeeper
 	}
 )
 
-func NewKeeper(cdc codec.Marshaler, storeKey, memKey sdk.StoreKey) *Keeper {
+func NewKeeper(
+	cdc codec.Marshaler,
+	storeKey,
+	memKey sdk.StoreKey,
+	channelKeeper types.ChannelKeeper,
+	portKeeper types.PortKeeper,
+	scopedKeeper capabilitykeeper.ScopedKeeper,
+) *Keeper {
 	return &Keeper{
-		cdc:      cdc,
-		storeKey: storeKey,
-		memKey:   memKey,
+		cdc:           cdc,
+		storeKey:      storeKey,
+		memKey:        memKey,
+		channelKeeper: channelKeeper,
+		portKeeper:    portKeeper,
+		scopedKeeper:  scopedKeeper,
 	}
 }
 

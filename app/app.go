@@ -53,7 +53,7 @@ import (
 	govclient "github.com/cosmos/cosmos-sdk/x/gov/client"
 	govkeeper "github.com/cosmos/cosmos-sdk/x/gov/keeper"
 	govtypes "github.com/cosmos/cosmos-sdk/x/gov/types"
-	transfer "github.com/cosmos/cosmos-sdk/x/ibc/applications/transfer"
+	"github.com/cosmos/cosmos-sdk/x/ibc/applications/transfer"
 	ibctransferkeeper "github.com/cosmos/cosmos-sdk/x/ibc/applications/transfer/keeper"
 	ibctransfertypes "github.com/cosmos/cosmos-sdk/x/ibc/applications/transfer/types"
 	ibc "github.com/cosmos/cosmos-sdk/x/ibc/core"
@@ -85,7 +85,6 @@ import (
 	markettypes "github.com/onomyprotocol/market/x/market/types"
 	tmjson "github.com/tendermint/tendermint/libs/json"
 	tmproto "github.com/tendermint/tendermint/proto/tendermint/types"
-	// this line is used by starport scaffolding # stargate/app/moduleImport
 )
 
 const Name = "market"
@@ -133,6 +132,7 @@ var (
 		vesting.AppModuleBasic{},
 		market.AppModuleBasic{},
 		// this line is used by starport scaffolding # stargate/app/moduleBasic
+		market.AppModuleBasic{},
 	)
 
 	// module account permissions
@@ -198,7 +198,8 @@ type App struct {
 	ScopedIBCKeeper      capabilitykeeper.ScopedKeeper
 	ScopedTransferKeeper capabilitykeeper.ScopedKeeper
 
-	marketKeeper marketkeeper.Keeper
+	ScopedMarketKeeper capabilitykeeper.ScopedKeeper
+	marketKeeper       marketkeeper.Keeper
 	// this line is used by starport scaffolding # stargate/app/keeperDeclaration
 
 	// the module manager
@@ -230,6 +231,7 @@ func New(
 		evidencetypes.StoreKey, ibctransfertypes.StoreKey, capabilitytypes.StoreKey,
 		markettypes.StoreKey,
 		// this line is used by starport scaffolding # stargate/app/storeKey
+		markettypes.StoreKey,
 	)
 	tkeys := sdk.NewTransientStoreKeys(paramstypes.TStoreKey)
 	memKeys := sdk.NewMemoryStoreKeys(capabilitytypes.MemStoreKey)
@@ -319,11 +321,19 @@ func New(
 	// If evidence needs to be handled for the app, set routes in router here and seal
 	app.EvidenceKeeper = *evidenceKeeper
 
+	scopedMarketKeeper := app.CapabilityKeeper.ScopeToModule(markettypes.ModuleName)
+	app.ScopedMarketKeeper = scopedMarketKeeper
 	app.marketKeeper = *marketkeeper.NewKeeper(
-		appCodec, keys[markettypes.StoreKey], keys[markettypes.MemStoreKey],
+		appCodec,
+		keys[markettypes.StoreKey],
+		keys[markettypes.MemStoreKey],
+		app.IBCKeeper.ChannelKeeper,
+		&app.IBCKeeper.PortKeeper,
+		scopedMarketKeeper,
 	)
 
 	// this line is used by starport scaffolding # stargate/app/keeperDefinition
+	marketModule := market.NewAppModule(appCodec, app.marketKeeper)
 
 	app.GovKeeper = govkeeper.NewKeeper(
 		appCodec, keys[govtypes.StoreKey], app.GetSubspace(govtypes.ModuleName), app.AccountKeeper, app.BankKeeper,
@@ -334,6 +344,7 @@ func New(
 	ibcRouter := porttypes.NewRouter()
 	ibcRouter.AddRoute(ibctransfertypes.ModuleName, transferModule)
 	// this line is used by starport scaffolding # ibc/app/router
+	ibcRouter.AddRoute(markettypes.ModuleName, marketModule)
 	app.IBCKeeper.SetRouter(ibcRouter)
 
 	/****  Module Options ****/
@@ -367,6 +378,7 @@ func New(
 		transferModule,
 		market.NewAppModule(appCodec, app.marketKeeper),
 		// this line is used by starport scaffolding # stargate/app/appModule
+		marketModule,
 	)
 
 	// During begin block slashing happens after distr.BeginBlocker so that
@@ -401,6 +413,7 @@ func New(
 		ibctransfertypes.ModuleName,
 		markettypes.ModuleName,
 		// this line is used by starport scaffolding # stargate/app/initGenesis
+		markettypes.ModuleName,
 	)
 
 	app.mm.RegisterInvariants(&app.CrisisKeeper)
@@ -583,6 +596,7 @@ func initParamsKeeper(appCodec codec.BinaryMarshaler, legacyAmino *codec.LegacyA
 	paramsKeeper.Subspace(ibctransfertypes.ModuleName)
 	paramsKeeper.Subspace(ibchost.ModuleName)
 	// this line is used by starport scaffolding # stargate/app/paramSubspace
+	paramsKeeper.Subspace(markettypes.ModuleName)
 
 	return paramsKeeper
 }
