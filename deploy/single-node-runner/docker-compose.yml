@@ -4,10 +4,10 @@ services:
   gravity:
     image: onomy/market-single-node-runner:local
     container_name: market-single-node-runner
-    volumes:
-      - ./scripts:/root/scripts
+    # volumes:
+      # - ./scripts:/root/scripts
       # uncomment to update gravity config in runtime
-      - ./market_home:/root/.market/.
+      # - ./market_home:/root/.market/.
     ports:
       # gravity
       - 26656:26656

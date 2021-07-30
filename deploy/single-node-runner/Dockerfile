@@ -20,5 +20,6 @@ WORKDIR /root
  COPY --from=build-env /go/bin/marketd /usr/bin/marketd
 
 COPY deploy/single-node-runner/scripts /root/scripts
+COPY deploy/single-node-runner/market_home /root/.market
 
 CMD sh /root/scripts/run.sh
